@@ -4,15 +4,19 @@ import time
 from datetime import datetime, timedelta
 from kiteconnect import KiteConnect
 import yfinance as yf
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
 
 class Config:
-    """API Configuration"""
-    API_KEY = "pr39njcvdj4jnm0u"
-    API_SECRET = "47a35361z7z4j1r5ne97vx0pwt0maag7"
+    """API Configuration - loads from environment variables"""
+    API_KEY = os.getenv("KITE_API_KEY", "")
+    API_SECRET = os.getenv("KITE_API_SECRET", "")
     STOCKS = ["RELIANCE", "TCS", "INFY", "HDFCBANK", "ICICIBANK", 
               "HINDUNILVR", "ITC", "SBIN", "BHARTIARTL", "LT"]
     TICKER_MAP = {
@@ -32,11 +36,11 @@ class Config:
 
 
 # ============================================================================
-# AUTHENTICATION MANAGER - Practice Kite Auth Flow
+# AUTHENTICATION MANAGER
 # ============================================================================
 
 class AuthenticationManager:
-    """Handles Zerodha Kite Connect authentication - FULL DEV WORKFLOW"""
+    """Handles Zerodha Kite Connect authentication"""
     
     def __init__(self):
         self.kite = KiteConnect(api_key=Config.API_KEY)
@@ -96,11 +100,11 @@ class AuthenticationManager:
 
 
 # ============================================================================
-# MARKET DATA FETCHER - Uses yfinance (not Kite API)
+# MARKET DATA FETCHER
 # ============================================================================
 
 class MarketDataFetcher:
-    """Fetches historical data from yfinance (free alternative)"""
+    """Fetches historical data from yfinance"""
     
     def __init__(self):
         self.rate_limit_delay = 0.5
@@ -252,7 +256,7 @@ class DataStorageManager:
 
 
 # ============================================================================
-# MAIN WORKFLOW - DEV MODE
+# MAIN WORKFLOW
 # ============================================================================
 
 class ZerodhaBacktestingWorkflow:
@@ -279,7 +283,7 @@ class ZerodhaBacktestingWorkflow:
             print("4. You'll be redirected to callback URL")
             print("5. Copy the 'request_token' from callback")
             print("\nThen run:")
-            print("   workflow.authenticate(request_token='YOUR_TOKEN')")
+            print("   authenticate_with_kite(request_token='YOUR_TOKEN')")
             return False
     
     def fetch_and_save_data(self, days=365):
@@ -288,7 +292,7 @@ class ZerodhaBacktestingWorkflow:
         if not self.auth_manager.is_authenticated():
             print("\n❌ NOT AUTHENTICATED")
             print("You must authenticate first:")
-            print("   workflow.authenticate()")
+            print("   authenticate_with_kite()")
             return False
         
         print("\n" + "="*60)
@@ -324,11 +328,7 @@ class ZerodhaBacktestingWorkflow:
 # ============================================================================
 
 def authenticate_with_kite(request_token=None):
-    """Step 1: Authenticate with Kite API"""
-    print("\n" + "="*60)
-    print("STEP 1: AUTHENTICATE WITH KITE API")
-    print("="*60)
-    
+    """Authenticate with Kite API - optionally pass request_token"""
     workflow = ZerodhaBacktestingWorkflow()
     if request_token:
         workflow.authenticate(request_token=request_token)
@@ -337,11 +337,7 @@ def authenticate_with_kite(request_token=None):
 
 
 def fetch_data():
-    """Step 2: Fetch historical data (requires authentication)"""
-    print("\n" + "="*60)
-    print("STEP 2: FETCH HISTORICAL DATA")
-    print("="*60)
-    
+    """Fetch historical data (requires authentication first)"""
     workflow = ZerodhaBacktestingWorkflow()
     
     if not workflow.auth_manager.is_authenticated():
@@ -389,12 +385,13 @@ if __name__ == "__main__":
     print("╚" + "="*58 + "╝")
     
     print("\n📋 WORKFLOW:\n")
-    print("1️⃣  AUTHENTICATE WITH KITE:")
+    print("1. Get login URL:")
     print("   >>> authenticate_with_kite()\n")
-    print("2️⃣  FETCH DATA (after auth):")
+    print("2. After you get request_token from callback URL:")
+    print("   >>> authenticate_with_kite(request_token='YOUR_TOKEN')\n")
+    print("3. Fetch data:")
     print("   >>> fetch_data()\n")
-    print("3️⃣  CHECK STATUS:")
+    print("4. Check status:")
     print("   >>> check_status()\n")
-    print("4️⃣  ANALYZE DATA:")
+    print("5. Analyze data:")
     print("   >>> analyze_data()\n")
-    print(f"📊 Stocks: {', '.join(Config.STOCKS)}\n")
